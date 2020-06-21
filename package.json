@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/TMiguelT/wordnet-sqlite"
   },
-  "scripts":{
+  "scripts": {
     "prepare": "./setup.js"
   },
   "keywords": [
@@ -23,6 +23,6 @@
   ],
   "version": "1.0.3",
   "dependencies": {
-    "sqlite3": "^3.0.5"
+    "sqlite3": "^4.2.0"
   }
 }
