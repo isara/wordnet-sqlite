@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-var sqlite3 = require('sqlite3').verbose();
-var fs = require('fs');
-var readline = require('readline');
+const _ = require('lodash');
+const fs = require('fs');
+const readline = require('readline');
+const sqlite3 = require('sqlite3').verbose();
 
 //Make the database and run it serially
 var db = new sqlite3.Database('wordnet.dict');
@@ -9,12 +10,12 @@ db.serialize(function () {
 
     //Create the main table
     db.run("DROP TABLE IF EXISTS words");
-    db.run("CREATE TABLE words (id TEXT, word TEXT, definition TEXT, type TEXT)");
+    db.run("CREATE TABLE words (id TEXT, lex TEXT, word TEXT, definition TEXT, type TEXT, fr TEXT)");
     db.run("CREATE INDEX id_idx ON words (id ASC)");
     db.run("BEGIN TRANSACTION");
 
     //Prepare the insert statement
-    var stmt = db.prepare("INSERT INTO words VALUES (?, ?, ?, ?)");
+    var stmt = db.prepare("INSERT INTO words VALUES (?, ?, ?, ?, ?, NULL)");
 
     //For each input file
     var types = ["adj", "adv", "noun", "verb"];
@@ -29,7 +30,7 @@ db.serialize(function () {
     types.forEach(function (type) {
 
         //Read each line of the file
-        var rl = readline.createInterface({input: fs.createReadStream('raw_dict/data.' + type)});
+        var rl = readline.createInterface({input: fs.createReadStream('dict/data.' + type)});
 
         var rows = 0;
 
@@ -51,7 +52,7 @@ db.serialize(function () {
                 words.push(cols[4])
             }
             var definitions = sections[1].split(/;/);
-            words.forEach(word => stmt.run(id, word, definitions[0], type));
+            stmt.run(id, cols[1], _.join(words, ' ; '), definitions[0], type);
             rows++;
         });
 
