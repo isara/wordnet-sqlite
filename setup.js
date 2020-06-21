@@ -9,16 +9,21 @@ db.serialize(function () {
 
     //Create the main table
     db.run("DROP TABLE IF EXISTS words");
-    db.run("CREATE TABLE words (word TEXT, definition TEXT, type TEXT)");
-    db.run("CREATE INDEX word_idx ON words (word ASC)");
-    db.run("CREATE INDEX type_idx ON words (type ASC)");
+    db.run("CREATE TABLE words (id TEXT, word TEXT, definition TEXT, type TEXT)");
+    db.run("CREATE INDEX id_idx ON words (id ASC)");
     db.run("BEGIN TRANSACTION");
 
     //Prepare the insert statement
-    var stmt = db.prepare("INSERT INTO words VALUES (?, ?, ?)");
+    var stmt = db.prepare("INSERT INTO words VALUES (?, ?, ?, ?)");
 
     //For each input file
     var types = ["adj", "adv", "noun", "verb"];
+    const typeCodes = {
+        adj: 'a',
+        adv: 'r',
+        noun: 'n',
+        verb: 'v',
+    }
     var counter = 0;
 
     types.forEach(function (type) {
@@ -40,13 +45,13 @@ db.serialize(function () {
             var words = cols
                 .filter(col => col.match(/^[^\d!"#$%&'()\*\+\-\.,\/:;<=>?@\[\\\]^_`{|}~]/gm)) // doesn't start with number or special letter
                 .filter(col => col.length > 1); // has two or more charactors
-
+            var id = cols[0] + '-' + typeCodes[type];
             //Preserve cols[4] which always has a vaild meaning
             if(words.indexOf(cols[4]) === -1){
                 words.push(cols[4])
             }
-            
-            words.forEach(word => stmt.run(word, sections[1], type));
+            var definitions = sections[1].split(/;/);
+            words.forEach(word => stmt.run(id, word, definitions[0], type));
             rows++;
         });
 
